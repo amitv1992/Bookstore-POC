@@ -1,26 +1,56 @@
-import React from 'react';
-import logo from '../assets/images/logo.svg';
-import '../styles/App.scss';
+import React, { PureComponent } from 'react';
+import { connect } from 'react-redux';
+import '../styles/styles.scss';
+import SearchBar from './SearchBar';
+import fetchBookCategories from '../actions/navigation';
+import { fetchBookList, switchOnOrOffMessageComponent } from '../actions/book';
+import Navigation from './Navigation';
+import ContentContainer from './ContentContainer';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends PureComponent {
+  componentDidMount() {
+    this.props.fetchBookCategories();
+  }
+
+  componentWillReceiveProps(nextProps, nextContext) {
+    /**
+     * prevent multiple API calls for same book category clicked
+     */
+    if (
+      nextProps.state.bookCategoryName &&
+      nextProps.state.bookCategoryName !== this.props.state.bookCategoryName
+    ) {
+      console.info('Book Api got called...');
+      this.props.fetchBookList(nextProps.state.bookCategoryName);
+    }
+  }
+
+  render() {
+    return (
+      <div id="main-content-wrapper">
+        <div id="panel-wrapper">
+          <Navigation />
+        </div>
+        <div id="content-wrapper">
+          <SearchBar />
+          <ContentContainer />
+        </div>
+      </div>
+    );
+  }
 }
 
-export default App;
+const mapStateToProps = state => {
+  console.info('STATE INFO FROM APP COMPONENT: ', state);
+  return { state: state.appDataReducer };
+};
+
+const mapDispatchToProps = {
+  fetchBookList,
+  fetchBookCategories,
+  switchOnOrOffMessageComponent
+};
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);
